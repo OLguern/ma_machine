@@ -3,55 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Carbon Studio | v2.0.0 Obsidian</title>
+    <title>Carbon Studio | v2.0.1 Anchor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     
     <script>
-        // PROTOCOLE OBSIDIAN : Nettoyage forcé du cache et des anciens scripts
+        // Purge préventive
         (function() {
-            const currentVersion = "2.0.0";
-            const lastVersion = localStorage.getItem('CARBON_CORE_VERSION');
-            
-            if (lastVersion !== currentVersion) {
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-                }
-                if ('caches' in window) {
-                    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-                }
-                localStorage.setItem('CARBON_CORE_VERSION', currentVersion);
-                // On ne recharge pas ici pour éviter une boucle, 
-                // mais on marque le territoire pour le moteur.
+            if (window.location.hash === '#retry') return;
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
             }
         })();
-
-        // Auto-correction : Si une erreur de module survient, on force UN seul refresh
-        window.addEventListener('error', function(e) {
-            if (e.message.toLowerCase().includes('module') || e.message.toLowerCase().includes('import')) {
-                console.warn("Conflit de module détecté. Réparation automatique...");
-                if (!window.location.hash.includes('reloaded')) {
-                    window.location.hash = 'reloaded';
-                    window.location.reload(true);
-                }
-            }
-        }, true);
     </script>
 
     <style>
-        body { background: #0a0a0a; color: #d1d5db; font-family: 'Courier Prime', monospace; margin: 0; overflow: hidden; }
-        #root:empty + #obsidian-loader { display: flex; }
-        #obsidian-loader { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; flex-direction: column; background: #0a0a0a; z-index: 9999; }
-        .core-box { 
-            width: 80vw; max-width: 400px; padding: 40px; 
-            border: 1px solid #1f2937; background: #111827; 
-            border-radius: 8px; box-shadow: 0 0 100px rgba(16, 185, 129, 0.05); 
-            text-align: center;
+        body { background: #050505; color: #94a3b8; font-family: 'Courier Prime', monospace; margin: 0; overflow: hidden; }
+        #root:empty + #anchor-loader { display: flex; }
+        #anchor-loader { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; flex-direction: column; background: #050505; z-index: 9999; }
+        .anchor-box { 
+            width: 300px; padding: 30px; 
+            border: 1px solid #1e293b; background: #0f172a; 
+            border-radius: 4px; text-align: center;
         }
-        .status-line { font-size: 9px; margin: 10px 0; color: #4b5563; letter-spacing: 4px; text-transform: uppercase; }
-        .emerald-text { color: #10b981; font-weight: bold; }
-        .blink { animation: blink 1.5s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .loading-bar { width: 100%; height: 2px; background: #1e293b; margin-top: 20px; overflow: hidden; position: relative; }
+        .loading-bar::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 30%; background: #10b981; animation: move 1.5s infinite linear; }
+        @keyframes move { 0% { left: -30%; } 100% { left: 100%; } }
+        .status { font-size: 8px; margin-top: 15px; color: #475569; letter-spacing: 3px; text-transform: uppercase; }
     </style>
 
     <script type="importmap">
@@ -74,19 +52,15 @@
 <body>
     <div id="root"></div>
 
-    <div id="obsidian-loader">
-        <div class="core-box">
-            <div style="font-weight: bold; margin-bottom: 25px; color: #374151; font-size: 10px; letter-spacing: 8px;">OBSIDIAN_CORE_2.0.0</div>
-            <div class="status-line">> INIT_SEQUENCER... OK</div>
-            <div class="status-line">> PURGE_MODULES... OK</div>
-            <div style="margin-top: 30px; font-size: 11px;">
-                <span class="emerald-text">COHÉRENCE DU SIGNAL</span> 
-                <span class="blink" style="color: #10b981;">_</span>
-            </div>
+    <div id="anchor-loader">
+        <div class="anchor-box">
+            <div style="font-weight: bold; color: #10b981; font-size: 10px; letter-spacing: 5px;">CORE_ANCHOR_2.0.1</div>
+            <div class="loading-bar"></div>
+            <div class="status">Chargement du signal...</div>
         </div>
     </div>
 
-    <script type="module" src="./index.tsx?v=2.0.0"></script>
+    <script type="module" src="./index.tsx?v=2.0.1"></script>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>

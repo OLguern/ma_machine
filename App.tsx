@@ -16,7 +16,7 @@ import { FloorPlanCanvas } from './components/FloorPlanCanvas.tsx';
 import { PasswordGate } from './components/PasswordGate.tsx';
 import { MasterGate } from './components/MasterGate.tsx';
 
-const VERSION = "2.0.0";
+const VERSION = "2.0.1";
 const getUUID = () => crypto.randomUUID();
 
 const DEFAULT_INTENTION_QUESTIONS: IntentionQuestion[] = [
@@ -36,19 +36,23 @@ const App: React.FC = () => {
 
   useEffect(() => {
     try {
-      let raw = localStorage.getItem(APP_STORAGE_KEY);
-      if (!raw) raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      const currentRaw = localStorage.getItem(APP_STORAGE_KEY);
+      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
 
-      if (raw) {
-        const parsed = JSON.parse(raw);
+      if (currentRaw) {
+        const parsed = JSON.parse(currentRaw);
         const p = Array.isArray(parsed) ? parsed[0] : parsed;
         if (p && p.id) {
           setProject(p);
           setIsUnlocked(!p.password);
           setLastSaved(new Date(p.lastModified || Date.now()).toLocaleTimeString());
+        } else if (legacyRaw) {
+          restoreFromLegacy(legacyRaw);
         } else {
           createNewProject();
         }
+      } else if (legacyRaw) {
+        restoreFromLegacy(legacyRaw);
       } else {
         createNewProject();
       }
@@ -56,6 +60,22 @@ const App: React.FC = () => {
       createNewProject();
     }
   }, []);
+
+  const restoreFromLegacy = (raw: string) => {
+    try {
+      const parsed = JSON.parse(raw);
+      const p = Array.isArray(parsed) ? parsed[0] : parsed;
+      if (p && p.id) {
+        setProject({ ...p, title: p.title || "RESTAURATION MACHINE" });
+        setIsUnlocked(!p.password);
+        setLastSaved("Restauré");
+      } else {
+        createNewProject();
+      }
+    } catch (e) {
+      createNewProject();
+    }
+  };
 
   useEffect(() => {
     if (project) {
@@ -132,10 +152,10 @@ const App: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-[#0a0a0a] text-slate-300 overflow-hidden font-sans">
-      <header className="h-14 bg-[#111] border-b border-[#1f2937] flex items-center justify-between px-6 shrink-0 z-50">
+    <div className="flex flex-col h-screen bg-[#050505] text-slate-300 overflow-hidden font-sans border-[12px] border-[#111]">
+      <header className="h-14 bg-[#0a0a0f] border-b border-[#1f2937] flex items-center justify-between px-6 shrink-0 z-50">
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center font-bold text-black text-lg shadow-[0_0_20px_rgba(16,185,129,0.2)]">C</div>
+          <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center font-bold text-black text-lg">C</div>
           <div className="flex flex-col">
             <h1 className="font-bold text-[9px] tracking-[0.5em] uppercase text-emerald-500">
               {project.title}
@@ -143,7 +163,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2">
                <span className={`w-1 h-1 rounded-full ${autoSaveStatus === 'SAVING' ? 'bg-emerald-400 animate-pulse' : 'bg-stone-800'}`}></span>
                <span className="text-[7px] font-bold uppercase tracking-widest text-stone-600">
-                 {autoSaveStatus === 'SAVING' ? 'MÉMORISATION...' : 'OBSIDIAN_CORE_STABLE'}
+                 {autoSaveStatus === 'SAVING' ? 'ANCHOR_SYNC...' : 'SIGNAL_STABLE'}
                </span>
             </div>
           </div>
@@ -151,13 +171,13 @@ const App: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <input type="file" ref={fileInputRef} onChange={handleImportMac} accept=".mac,.json" className="hidden" />
-          <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-[#1a1a1a] hover:bg-[#252525] border border-stone-800 text-stone-500 rounded text-[8px] font-bold uppercase tracking-widest transition-all">Ouvrir .MAC</button>
-          <button onClick={handleSaveMac} className="px-4 py-1.5 bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-900/50 text-emerald-500 rounded text-[8px] font-bold uppercase tracking-widest transition-colors">Exporter</button>
+          <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-[#1a1a1a] border border-stone-800 text-stone-500 rounded text-[8px] font-bold uppercase tracking-widest transition-all">Ouvrir .MAC</button>
+          <button onClick={handleSaveMac} className="px-4 py-1.5 bg-emerald-950/30 border border-emerald-900/50 text-emerald-500 rounded text-[8px] font-bold uppercase tracking-widest transition-colors">Exporter</button>
           <button onClick={() => setIsHelpOpen(true)} className="w-8 h-8 flex items-center justify-center bg-[#1a1a1a] border border-stone-800 text-stone-600 rounded hover:text-white transition-colors">?</button>
         </div>
       </header>
 
-      <nav className="h-10 bg-[#0a0a0a] border-b border-[#1f2937] flex items-center px-4 gap-1 shrink-0 overflow-x-auto no-scrollbar">
+      <nav className="h-10 bg-[#050505] border-b border-[#1f2937] flex items-center px-4 gap-1 shrink-0 overflow-x-auto no-scrollbar">
         {navItems.map(item => (
           <button
             key={item.type}
@@ -172,7 +192,7 @@ const App: React.FC = () => {
         ))}
       </nav>
 
-      <main className="flex-grow overflow-hidden relative bg-[#0a0a0a]">
+      <main className="flex-grow overflow-hidden relative bg-[#050505]">
           {activeModule === ModuleType.ProjectInfo && <MetadataModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} onNewProject={createNewProject} />}
           {activeModule === ModuleType.Intention && <IntentionModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
           {activeModule === ModuleType.Pitch && <PitchModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
@@ -190,9 +210,9 @@ const App: React.FC = () => {
           )}
       </main>
 
-      <footer className="h-8 bg-[#111] border-t border-[#1f2937] flex items-center justify-between px-6 shrink-0 text-[7px] font-bold uppercase text-stone-700 tracking-[0.3em]">
-          <div>MÉMOIRE_STABLE : {lastSaved}</div>
-          <div className="font-mono italic">CARBON STUDIO OBSIDIAN v{VERSION}</div>
+      <footer className="h-8 bg-[#0a0a0f] border-t border-[#1f2937] flex items-center justify-between px-6 shrink-0 text-[7px] font-bold uppercase text-stone-700 tracking-[0.3em]">
+          <div>RÉGÉNÉRATION : {lastSaved}</div>
+          <div className="font-mono italic">CARBON STUDIO ANCHOR v{VERSION}</div>
       </footer>
 
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
