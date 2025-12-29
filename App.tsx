@@ -16,7 +16,7 @@ import { FloorPlanCanvas } from './components/FloorPlanCanvas.tsx';
 import { PasswordGate } from './components/PasswordGate.tsx';
 import { MasterGate } from './components/MasterGate.tsx';
 
-const VERSION = "2.0.1";
+const VERSION = "2.0.2";
 const getUUID = () => crypto.randomUUID();
 
 const DEFAULT_INTENTION_QUESTIONS: IntentionQuestion[] = [
@@ -35,47 +35,42 @@ const App: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    try {
-      const currentRaw = localStorage.getItem(APP_STORAGE_KEY);
-      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    const bootstrap = () => {
+      try {
+        const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+        const currentRaw = localStorage.getItem(APP_STORAGE_KEY);
 
-      if (currentRaw) {
-        const parsed = JSON.parse(currentRaw);
-        const p = Array.isArray(parsed) ? parsed[0] : parsed;
-        if (p && p.id) {
-          setProject(p);
-          setIsUnlocked(!p.password);
-          setLastSaved(new Date(p.lastModified || Date.now()).toLocaleTimeString());
-        } else if (legacyRaw) {
-          restoreFromLegacy(legacyRaw);
-        } else {
-          createNewProject();
+        // PRIORITÉ TITANIUM : Si on trouve "La Machine à Écrire", on la restaure en premier
+        if (legacyRaw) {
+          const parsed = JSON.parse(legacyRaw);
+          const p = Array.isArray(parsed) ? parsed[0] : parsed;
+          if (p && (p.script || p.sequencier || p.title)) {
+            setProject({ ...p, title: p.title || "LA MACHINE À ÉCRIRE (RESTAURÉ)" });
+            setIsUnlocked(true);
+            setLastSaved("Machine à Écrire trouvée");
+            return;
+          }
         }
-      } else if (legacyRaw) {
-        restoreFromLegacy(legacyRaw);
-      } else {
-        createNewProject();
-      }
-    } catch (e) {
-      createNewProject();
-    }
-  }, []);
 
-  const restoreFromLegacy = (raw: string) => {
-    try {
-      const parsed = JSON.parse(raw);
-      const p = Array.isArray(parsed) ? parsed[0] : parsed;
-      if (p && p.id) {
-        setProject({ ...p, title: p.title || "RESTAURATION MACHINE" });
-        setIsUnlocked(!p.password);
-        setLastSaved("Restauré");
-      } else {
+        if (currentRaw) {
+          const parsed = JSON.parse(currentRaw);
+          const p = Array.isArray(parsed) ? parsed[0] : parsed;
+          if (p && p.id) {
+            setProject(p);
+            setIsUnlocked(!p.password);
+            setLastSaved(new Date(p.lastModified || Date.now()).toLocaleTimeString());
+            return;
+          }
+        }
+
+        createNewProject();
+      } catch (e) {
+        console.error("Bootstrap error:", e);
         createNewProject();
       }
-    } catch (e) {
-      createNewProject();
-    }
-  };
+    };
+    bootstrap();
+  }, []);
 
   useEffect(() => {
     if (project) {
@@ -152,18 +147,18 @@ const App: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-[#050505] text-slate-300 overflow-hidden font-sans border-[12px] border-[#111]">
-      <header className="h-14 bg-[#0a0a0f] border-b border-[#1f2937] flex items-center justify-between px-6 shrink-0 z-50">
+    <div className="flex flex-col h-screen bg-[#050505] text-slate-300 overflow-hidden font-sans border-[10px] border-[#0f172a]">
+      <header className="h-14 bg-[#0a0a0f] border-b border-slate-800 flex items-center justify-between px-6 shrink-0 z-50">
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center font-bold text-black text-lg">C</div>
+          <div className="w-8 h-8 bg-slate-700 rounded-sm flex items-center justify-center font-bold text-white text-lg">C</div>
           <div className="flex flex-col">
-            <h1 className="font-bold text-[9px] tracking-[0.5em] uppercase text-emerald-500">
+            <h1 className="font-bold text-[9px] tracking-[0.5em] uppercase text-slate-400">
               {project.title}
             </h1>
             <div className="flex items-center gap-2">
-               <span className={`w-1 h-1 rounded-full ${autoSaveStatus === 'SAVING' ? 'bg-emerald-400 animate-pulse' : 'bg-stone-800'}`}></span>
-               <span className="text-[7px] font-bold uppercase tracking-widest text-stone-600">
-                 {autoSaveStatus === 'SAVING' ? 'ANCHOR_SYNC...' : 'SIGNAL_STABLE'}
+               <span className={`w-1 h-1 rounded-full ${autoSaveStatus === 'SAVING' ? 'bg-slate-400 animate-pulse' : 'bg-slate-900'}`}></span>
+               <span className="text-[7px] font-bold uppercase tracking-widest text-slate-600">
+                 {autoSaveStatus === 'SAVING' ? 'MÉMORISATION...' : 'COHÉRENCE_TITANIUM'}
                </span>
             </div>
           </div>
@@ -171,19 +166,19 @@ const App: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <input type="file" ref={fileInputRef} onChange={handleImportMac} accept=".mac,.json" className="hidden" />
-          <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-[#1a1a1a] border border-stone-800 text-stone-500 rounded text-[8px] font-bold uppercase tracking-widest transition-all">Ouvrir .MAC</button>
-          <button onClick={handleSaveMac} className="px-4 py-1.5 bg-emerald-950/30 border border-emerald-900/50 text-emerald-500 rounded text-[8px] font-bold uppercase tracking-widest transition-colors">Exporter</button>
-          <button onClick={() => setIsHelpOpen(true)} className="w-8 h-8 flex items-center justify-center bg-[#1a1a1a] border border-stone-800 text-stone-600 rounded hover:text-white transition-colors">?</button>
+          <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-[#1a1a1a] border border-slate-800 text-slate-500 rounded text-[8px] font-bold uppercase tracking-widest transition-all">Ouvrir .MAC</button>
+          <button onClick={handleSaveMac} className="px-4 py-1.5 bg-slate-800/40 border border-slate-700 text-slate-300 rounded text-[8px] font-bold uppercase tracking-widest transition-colors">Exporter</button>
+          <button onClick={() => setIsHelpOpen(true)} className="w-8 h-8 flex items-center justify-center bg-[#1a1a1a] border border-slate-800 text-slate-600 rounded hover:text-white transition-colors">?</button>
         </div>
       </header>
 
-      <nav className="h-10 bg-[#050505] border-b border-[#1f2937] flex items-center px-4 gap-1 shrink-0 overflow-x-auto no-scrollbar">
+      <nav className="h-10 bg-[#050505] border-b border-slate-800 flex items-center px-4 gap-1 shrink-0 overflow-x-auto no-scrollbar">
         {navItems.map(item => (
           <button
             key={item.type}
             onClick={() => setActiveModule(item.type)}
             className={`h-full flex items-center gap-2 px-4 text-[8px] font-bold uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${
-              activeModule === item.type ? 'text-emerald-400 border-emerald-500 bg-emerald-950/10' : 'text-stone-600 border-transparent hover:text-stone-400'
+              activeModule === item.type ? 'text-slate-100 border-slate-400 bg-slate-800/20' : 'text-slate-600 border-transparent hover:text-slate-400'
             }`}
           >
             <span>{item.icon}</span>
@@ -210,9 +205,9 @@ const App: React.FC = () => {
           )}
       </main>
 
-      <footer className="h-8 bg-[#0a0a0f] border-t border-[#1f2937] flex items-center justify-between px-6 shrink-0 text-[7px] font-bold uppercase text-stone-700 tracking-[0.3em]">
-          <div>RÉGÉNÉRATION : {lastSaved}</div>
-          <div className="font-mono italic">CARBON STUDIO ANCHOR v{VERSION}</div>
+      <footer className="h-8 bg-[#0a0a0f] border-t border-slate-800 flex items-center justify-between px-6 shrink-0 text-[7px] font-bold uppercase text-slate-700 tracking-[0.4em]">
+          <div>DERNIER ÉTAT : {lastSaved}</div>
+          <div className="font-mono italic">CARBON STUDIO TITANIUM v{VERSION}</div>
       </footer>
 
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />

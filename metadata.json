@@ -1,7 +1,7 @@
 {
   "name": "Carbon Studio",
-  "version": "2.0.1",
-  "description": "Professional Screenwriting Suite - Anchor Core v2.0.1",
+  "version": "2.0.2",
+  "description": "Professional Screenwriting Suite - Titanium Core v2.0.2",
   "requestFramePermissions": [
     "microphone"
   ]

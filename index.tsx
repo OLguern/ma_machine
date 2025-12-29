@@ -6,6 +6,14 @@ const start = () => {
   const rootEl = document.getElementById('root');
   if (!rootEl) return;
 
+  const hideLoader = () => {
+    const loader = document.getElementById('titanium-loader');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => { loader.style.display = 'none'; }, 500);
+    }
+  };
+
   try {
     const root = createRoot(rootEl);
     root.render(
@@ -13,23 +21,11 @@ const start = () => {
         <App />
       </React.StrictMode>
     );
-    
-    // Dissipation du loader une fois React monté
-    const loader = document.getElementById('obsidian-loader');
-    if (loader) {
-      setTimeout(() => {
-        loader.style.opacity = '0';
-        setTimeout(() => { loader.style.display = 'none'; }, 400);
-      }, 600);
-    }
+    // On attend un court instant que React commence le rendu
+    setTimeout(hideLoader, 500);
   } catch (err: any) {
-    console.error("OBSIDIAN_FATAL:", err);
-    // En cas d'erreur ici, on tente un dernier refresh forcé
-    if (!window.location.hash.includes('retry')) {
-      window.location.hash = 'retry';
-      // Fix: window.location.reload() does not accept arguments in modern TypeScript definitions.
-      window.location.reload();
-    }
+    console.error("TITANIUM_FATAL_ERROR:", err);
+    hideLoader(); // On cache quand même pour voir l'erreur potentielle dans App
   }
 };
 
