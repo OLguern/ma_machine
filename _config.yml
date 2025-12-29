@@ -1,0 +1,3 @@
+
+include: [".nojekyll", "index.html", "index.tsx", "App.tsx", "types.ts", "constants.tsx", "metadata.json", "manifest.json", "components", "services"]
+exclude: ["node_modules"]

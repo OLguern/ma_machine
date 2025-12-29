@@ -1,0 +1,19 @@
+
+{
+  "name": "La Machine à Écrire",
+  "short_name": "Écrire",
+  "description": "Atelier d'écriture de scénario immersif et autonome",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1e1e1e",
+  "theme_color": "#1e1e1e",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3256/3256160.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>La Machine à Écrire - Redirection</title>
+    <script type="text/javascript">
+      // Script de gestion des 404 pour les Single Page Apps sur GitHub Pages
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?p=/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body style="background-color: #0a0a0a; color: #d97706; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh;">
+      <div style="letter-spacing: 0.2em; font-size: 12px;">REDIRECTION VERS LE STUDIO...</div>
+  </body>
+</html>
