@@ -8,10 +8,12 @@ interface Props {
 }
 
 export const SequencerModule: React.FC<Props> = ({ project, onUpdate }) => {
+  // Fix: Handle potential undefined sceneContext
   const context = project.sceneContext;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [shouldFocus, setShouldFocus] = useState(false);
   
+  // Fix: Safe access to writingPreferences with defaults
   const { autoHeaderSpacing, autoBlockSpacing } = project.writingPreferences || { autoHeaderSpacing: true, autoBlockSpacing: true };
 
   const [selectedLumiere, setSelectedLumiere] = useState(context?.lumieres[0] || "");
@@ -29,10 +31,12 @@ export const SequencerModule: React.FC<Props> = ({ project, onUpdate }) => {
   }, [project.sequencier, shouldFocus]);
 
   const togglePreference = (key: 'autoHeaderSpacing' | 'autoBlockSpacing') => {
+    // Fix: Handle undefined writingPreferences when toggling
+    const current = project.writingPreferences || { autoHeaderSpacing: true, autoBlockSpacing: true };
     onUpdate({
       writingPreferences: {
-        ...project.writingPreferences!,
-        [key]: !project.writingPreferences![key]
+        ...current,
+        [key]: !current[key]
       }
     });
   };

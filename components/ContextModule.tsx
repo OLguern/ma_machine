@@ -31,6 +31,7 @@ const DEFAULT_CONTEXT: SceneContext = {
 const GLOBAL_LIB_KEY = 'MACHINE_A_ECRIRE_GLOBAL_CONTEXT';
 
 export const ContextModule: React.FC<Props> = ({ project, onUpdate }) => {
+  // Fix: Default to DEFAULT_CONTEXT if sceneContext is missing on Project
   const context = project.sceneContext || { ...DEFAULT_CONTEXT };
 
   const [inputs, setInputs] = useState<Record<string, string>>({
@@ -44,17 +45,17 @@ export const ContextModule: React.FC<Props> = ({ project, onUpdate }) => {
   };
 
   const addItem = (key: keyof SceneContext) => {
-    const val = inputs[key].trim().toUpperCase();
+    const val = inputs[key as string].trim().toUpperCase();
     if (!val) return;
-    // Fixed indexing error by casting to any to handle potential symbol key issues in TS
-    if ((context as any)[key].includes(val)) return;
-    updateList(key, [...(context as any)[key], val]);
-    setInputs({ ...inputs, [key]: "" });
+    // Fix: Cast key to string to avoid potential symbol index errors in strict TS environments
+    if ((context as any)[key as string].includes(val)) return;
+    updateList(key, [...(context as any)[key as string], val]);
+    setInputs({ ...inputs, [key as string]: "" });
   };
 
   const removeItem = (key: keyof SceneContext, index: number) => {
-    // Fixed indexing error by casting to any to handle potential symbol key issues in TS
-    const newList = [...(context as any)[key]];
+    // Fix: Cast key to string for indexing
+    const newList = [...(context as any)[key as string]];
     newList.splice(index, 1);
     updateList(key, newList);
   };
@@ -109,17 +110,17 @@ export const ContextModule: React.FC<Props> = ({ project, onUpdate }) => {
             {/* EN-TÊTE COLONNE */}
             <div className="p-3 bg-[#3c3f41] border-b border-[#4c4f51] flex justify-between items-center">
               <span className="text-[10px] font-bold uppercase tracking-widest text-stone-200">{col.label}</span>
-              {/* Fixed: Indexed context with col.key using any cast */}
-              <span className="text-[9px] text-stone-500 bg-[#252525] px-1.5 py-0.5 rounded">{(context as any)[col.key].length}</span>
+              {/* Fixed: Use col.key as string for indexing any-casted context */}
+              <span className="text-[9px] text-stone-500 bg-[#252525] px-1.5 py-0.5 rounded">{(context as any)[col.key as string].length}</span>
             </div>
 
             {/* LISTE DES ÉLÉMENTS */}
             <div className="flex-grow overflow-y-auto custom-scrollbar p-2 space-y-1 min-h-0 bg-[#252525]">
-              {/* Fixed: Indexed context with col.key using any cast */}
-              {(context as any)[col.key].length === 0 ? (
+              {/* Fixed: Indexed context with col.key using any cast and string conversion */}
+              {(context as any)[col.key as string].length === 0 ? (
                 <div className="h-full flex items-center justify-center italic text-stone-700 text-[9px] uppercase tracking-tighter">Vide</div>
               ) : (
-                (context as any)[col.key].map((item: string, idx: number) => (
+                (context as any)[col.key as string].map((item: string, idx: number) => (
                   <div 
                     key={idx} 
                     className="group flex items-center justify-between p-2 rounded hover:bg-[#323232] transition-colors border border-transparent hover:border-[#444] relative"
@@ -144,8 +145,8 @@ export const ContextModule: React.FC<Props> = ({ project, onUpdate }) => {
             <div className="p-2 border-t border-[#3c3c3c] bg-[#2b2b2b]">
               <div className="flex gap-1">
                 <input 
-                  value={inputs[col.key]}
-                  onChange={(e) => setInputs({...inputs, [col.key]: e.target.value})}
+                  value={inputs[col.key as string]}
+                  onChange={(e) => setInputs({...inputs, [col.key as string]: e.target.value})}
                   onKeyDown={(e) => e.key === 'Enter' && addItem(col.key)}
                   placeholder="AJOUTER..."
                   className="w-full bg-[#1e1e1e] border-none text-[10px] p-2 rounded focus:ring-1 focus:ring-stone-500 text-stone-200 placeholder-stone-700 uppercase"
