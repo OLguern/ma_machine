@@ -99,6 +99,7 @@ export const ScriptEditor: React.FC<ScriptEditorProps> = ({ project, onUpdate })
         oGain.gain.linearRampToValueAtTime(0.04, now + 0.01);
         oGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
         osc.connect(oGain);
+        // Fix: Connect the GainNode (oGain) directly to the destination. AudioParam (oGain.gain) does not support .connect().
         oGain.connect(ctx.destination);
         osc.start(); osc.stop(now + 0.6);
         return;
@@ -163,11 +164,11 @@ export const ScriptEditor: React.FC<ScriptEditorProps> = ({ project, onUpdate })
     let html = ""; let placeholder = "";
     switch (type) {
       case 'header':
-        const existingHeaders = (Array.from(editor.querySelectorAll('.scene-header')) as HTMLElement[]).map(h => h.innerText.replace(/^(\d+\.\s*)+/, "").trim().toUpperCase());
+        const existingHeaders = (Array.from(editor.querySelectorAll('.scene-header')) as HTMLElement[]).map(h => h.innerText.replace(/^(\d+\.\s*)?(INT\.|EXT\.)/i, "").trim().toUpperCase());
         let headerText = "INT. NOUVELLE SCÈNE - JOUR";
         for (const sHeader of sequencerHeaders) {
-          const cleanSHeader = sHeader.replace(/^(\d+\.\s*)?(INT\.|EXT\.)/.test(sHeader) ? sHeader : "").trim().toUpperCase();
-          if (cleanSHeader && !existingHeaders.includes(cleanSHeader)) { headerText = cleanSHeader; break; }
+          const cleanSHeader = sHeader.replace(/^(\d+\.\s*)?(INT\.|EXT\.)/i, "").trim().toUpperCase();
+          if (cleanSHeader && !existingHeaders.includes(cleanSHeader)) { headerText = sHeader; break; }
         }
         html = `<div class="scene-header">${headerText.toUpperCase()}</div>`;
         break;
