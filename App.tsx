@@ -1,28 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Project, ModuleType, IntentionQuestion, ExportSettings } from './types.ts';
 import { APP_STORAGE_KEY } from './constants.tsx';
-import { TechnicalTable } from './components/TechnicalTable.tsx';
-import { CharacterManager } from './components/CharacterManager.tsx';
-import { IntentionModule } from './components/IntentionModule.tsx';
-import { PitchModule } from './components/PitchModule.tsx';
-import { SynopsisModule } from './components/SynopsisModule.tsx';
-import { ContextModule } from './components/ContextModule.tsx';
-import { SequencerModule } from './components/SequencerModule.tsx';
-import { HelpModal } from './components/HelpModal.tsx';
-import { ScriptEditor } from './components/ScriptEditor.tsx';
-import { MetadataModule } from './components/MetadataModule.tsx';
-import { StoryboardModule } from './components/StoryboardModule.tsx';
-import { FloorPlanCanvas } from './components/FloorPlanCanvas.tsx';
-import { PasswordGate } from './components/PasswordGate.tsx';
 import { MasterGate } from './components/MasterGate.tsx';
-import { generateProductionBook } from './services/docxExportService.ts';
 import saveAs from 'file-saver';
 
-const VERSION = "2.1.0";
+// Modules chargés à la demande (Matérialisation)
+const TechnicalTable = React.lazy(() => import('./components/TechnicalTable.tsx').then(m => ({ default: m.TechnicalTable })));
+const CharacterManager = React.lazy(() => import('./components/CharacterManager.tsx').then(m => ({ default: m.CharacterManager })));
+const IntentionModule = React.lazy(() => import('./components/IntentionModule.tsx').then(m => ({ default: m.IntentionModule })));
+const PitchModule = React.lazy(() => import('./components/PitchModule.tsx').then(m => ({ default: m.PitchModule })));
+const SynopsisModule = React.lazy(() => import('./components/SynopsisModule.tsx').then(m => ({ default: m.SynopsisModule })));
+const ContextModule = React.lazy(() => import('./components/ContextModule.tsx').then(m => ({ default: m.ContextModule })));
+const SequencerModule = React.lazy(() => import('./components/SequencerModule.tsx').then(m => ({ default: m.SequencerModule })));
+const ScriptEditor = React.lazy(() => import('./components/ScriptEditor.tsx').then(m => ({ default: m.ScriptEditor })));
+const MetadataModule = React.lazy(() => import('./components/MetadataModule.tsx').then(m => ({ default: m.MetadataModule })));
+const StoryboardModule = React.lazy(() => import('./components/StoryboardModule.tsx').then(m => ({ default: m.StoryboardModule })));
+const FloorPlanCanvas = React.lazy(() => import('./components/FloorPlanCanvas.tsx').then(m => ({ default: m.FloorPlanCanvas })));
+const HelpModal = React.lazy(() => import('./components/HelpModal.tsx').then(m => ({ default: m.HelpModal })));
+const PasswordGate = React.lazy(() => import('./components/PasswordGate.tsx').then(m => ({ default: m.PasswordGate })));
+
+const VERSION = "2.1.3";
 const getUUID = () => crypto.randomUUID();
 
 const App: React.FC = () => {
   const [isMasterAuthorized, setIsMasterAuthorized] = useState(false);
+  const [isBooting, setIsBooting] = useState(false);
   const [activeModule, setActiveModule] = useState<ModuleType>(ModuleType.Script);
   const [project, setProject] = useState<Project | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -60,6 +62,14 @@ const App: React.FC = () => {
     }
   }, [project]);
 
+  const handleMasterAuthorized = () => {
+    setIsBooting(true);
+    setTimeout(() => {
+      setIsMasterAuthorized(true);
+      setIsBooting(false);
+    }, 1200);
+  };
+
   const createNewProject = () => {
     const newProj: Project = {
       id: getUUID(), title: "NOUVEAU MANUSCRIT",
@@ -93,29 +103,33 @@ const App: React.FC = () => {
     e.target.value = "";
   };
 
-  const runExport = async () => {
-    if (!project) return;
-    try {
-      const blob = await generateProductionBook(project, exportSettings);
-      saveAs(blob, `${project.title || 'Manuscrit'}_v${exportSettings.version}.docx`);
-      setIsExportModalOpen(false);
-    } catch (err) { alert("Erreur d'exportation"); }
-  };
+  if (!isMasterAuthorized) {
+    if (isBooting) {
+      return (
+        <div className="fixed inset-0 bg-[#020617] flex flex-col items-center justify-center p-6">
+           <div className="w-16 h-1 w-full max-w-[200px] bg-stone-900 rounded overflow-hidden mb-4">
+              <div className="h-full bg-amber-600 animate-[loading_1.2s_ease-in-out]"></div>
+           </div>
+           <div className="text-[8px] text-amber-600 font-bold uppercase tracking-[0.4em]">Matérialisation_Studio...</div>
+           <style>{`@keyframes loading { from { width: 0%; } to { width: 100%; } }`}</style>
+        </div>
+      );
+    }
+    return <MasterGate onAuthorized={handleMasterAuthorized} />;
+  }
 
-  if (!isMasterAuthorized) return <MasterGate onAuthorized={() => setIsMasterAuthorized(true)} />;
   if (!project) return null;
-  if (project.password && !isUnlocked) return <PasswordGate correctPassword={project.password} onUnlock={() => setIsUnlocked(true)} />;
-
+  
   const navItems = [
     { type: ModuleType.ProjectInfo, label: "Fiche", icon: "🏢" },
     { type: ModuleType.Intention, label: "Intention", icon: "📝" },
     { type: ModuleType.Pitch, label: "Pitch", icon: "⚡" },
     { type: ModuleType.Synopsis, label: "Synopsis", icon: "📖" },
     { type: ModuleType.Context, label: "Contexte Scène", icon: "⚙️" },
-    { type: ModuleType.Characters, label: "Caractérisation des personnages", icon: "👥" },
+    { type: ModuleType.Characters, label: "Personnages", icon: "👥" },
     { type: ModuleType.Sequencer, label: "Séquencier", icon: "🎞️" },
-    { type: ModuleType.Script, label: "Continuité Dialoguée", icon: "📽️" },
-    { type: ModuleType.Storyboard, label: "Scénarimage", icon: "🎨" },
+    { type: ModuleType.Script, label: "Scenario", icon: "📽️" },
+    { type: ModuleType.Storyboard, label: "Storyboard", icon: "🎨" },
     { type: ModuleType.Technical, label: "Découpage", icon: "📊" },
     { type: ModuleType.FloorPlan, label: "Plan Sol", icon: "📐" },
   ];
@@ -131,7 +145,6 @@ const App: React.FC = () => {
           <input type="file" ref={fileInputRef} onChange={handleImportMac} accept=".mac,.json" className="hidden" />
           <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-[#1e293b] border border-slate-700 text-slate-400 rounded text-[8px] font-bold uppercase tracking-widest transition-all hover:bg-slate-800">Charger .MAC</button>
           <button onClick={handleSaveMac} className="px-4 py-1.5 bg-sky-900/40 border border-sky-800 text-sky-300 rounded text-[8px] font-bold uppercase tracking-widest transition-colors hover:bg-sky-900/60">Sauver .MAC</button>
-          <button onClick={() => setIsExportModalOpen(true)} className="px-4 py-1.5 bg-emerald-900/40 border border-emerald-800 text-emerald-300 rounded text-[8px] font-bold uppercase tracking-widest transition-colors hover:bg-emerald-900/60">Exporter DOCX</button>
           <button onClick={() => setIsHelpOpen(true)} className="w-8 h-8 flex items-center justify-center bg-[#1e293b] border border-slate-700 text-slate-500 rounded hover:text-white transition-colors">?</button>
         </div>
       </header>
@@ -151,6 +164,7 @@ const App: React.FC = () => {
       </nav>
 
       <main className="flex-grow overflow-hidden relative bg-[#020617]">
+        <React.Suspense fallback={<div className="h-full flex items-center justify-center text-[10px] uppercase tracking-widest animate-pulse">Chargement Module...</div>}>
           {activeModule === ModuleType.ProjectInfo && <MetadataModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} onNewProject={createNewProject} />}
           {activeModule === ModuleType.Intention && <IntentionModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
           {activeModule === ModuleType.Pitch && <PitchModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
@@ -166,66 +180,16 @@ const App: React.FC = () => {
               <FloorPlanCanvas shots={project.technicalBreakdown} columns={project.technicalColumns} floorPlans={project.floorPlans} onUpdate={(fps) => setProject(p => p ? {...p, floorPlans: fps} : null)} />
             </div>
           )}
+        </React.Suspense>
       </main>
-
-      {isExportModalOpen && (
-        <div className="fixed inset-0 z-[1000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="bg-[#1e293b] border border-slate-700 rounded-lg w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="p-6 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
-              <h3 className="text-[12px] font-bold uppercase tracking-[0.3em] text-emerald-400">Exportation DOCX</h3>
-              <button onClick={() => setIsExportModalOpen(false)} className="text-slate-500 hover:text-white">×</button>
-            </div>
-            <div className="p-8 space-y-6">
-              <div>
-                <label className="text-[9px] font-bold uppercase text-slate-500 mb-2 block tracking-widest">Version du Manuscrit</label>
-                <input 
-                  type="text" 
-                  value={exportSettings.version} 
-                  onChange={(e) => setExportSettings({...exportSettings, version: e.target.value})}
-                  className="w-full bg-slate-950 border border-slate-800 p-3 rounded text-sm text-white focus:outline-none focus:border-emerald-500"
-                  placeholder="ex: 1.0 (Commission CNC)"
-                />
-              </div>
-              <div className="space-y-3">
-                <label className="text-[9px] font-bold uppercase text-slate-500 mb-2 block tracking-widest">Éléments à inclure dans le dossier</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { key: 'includeIntention', label: 'Note d\'Intention' },
-                    { key: 'includePitch', label: 'Pitch Dramatique' },
-                    { key: 'includeSynopsis', label: 'Synopsis Complet' },
-                    { key: 'includeCharacters', label: 'Fiches Personnages' },
-                    { key: 'includeSequencer', label: 'Séquencier' },
-                    { key: 'includeScript', label: 'Scénario (Script)' },
-                    { key: 'includeStoryboard', label: 'Scénarimage' },
-                    { key: 'includeTechnical', label: 'Découpage Technique' },
-                    { key: 'includeFloorPlan', label: 'Plans au Sol' },
-                  ].map((item) => (
-                    <label key={item.key} className="flex items-center gap-3 cursor-pointer group">
-                      <input 
-                        type="checkbox" 
-                        checked={(exportSettings as any)[item.key]} 
-                        onChange={() => setExportSettings({...exportSettings, [item.key]: !(exportSettings as any)[item.key]})}
-                        className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-0"
-                      />
-                      <span className="text-[10px] uppercase font-bold text-slate-400 group-hover:text-white transition-colors">{item.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="p-6 bg-slate-900 border-t border-slate-800 flex justify-end gap-3">
-              <button onClick={() => setIsExportModalOpen(false)} className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-white">Annuler</button>
-              <button onClick={runExport} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-bold uppercase tracking-widest transition-all">Générer le Document</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <footer className="h-8 bg-[#0f172a] border-t border-slate-800 flex items-center justify-between px-6 shrink-0 text-[7px] font-bold uppercase text-slate-600 tracking-[0.5em]">
           <div>SIGNAL_STABLE</div>
           <div className="font-mono italic">LA MACHINE À ÉCRIRE OS v{VERSION}</div>
       </footer>
-      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      <React.Suspense fallback={null}>
+        <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      </React.Suspense>
     </div>
   );
 };

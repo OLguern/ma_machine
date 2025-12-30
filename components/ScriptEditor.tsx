@@ -33,7 +33,7 @@ export const ScriptEditor: React.FC<ScriptEditorProps> = ({ project, onUpdate })
     const initAudio = () => {
       if (!audioCtx.current) {
         audioCtx.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const bufferSize = audioCtx.current.sampleRate * 0.25; // 250ms de bruit
+        const bufferSize = audioCtx.current.sampleRate * 0.3; 
         const buffer = audioCtx.current.createBuffer(1, bufferSize, audioCtx.current.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
@@ -85,39 +85,38 @@ export const ScriptEditor: React.FC<ScriptEditorProps> = ({ project, onUpdate })
       if (ctx.state === 'suspended') ctx.resume();
       const now = ctx.currentTime;
 
-      if (type === 'BELL') {
-        const bell = ctx.createOscillator();
-        const bGain = ctx.createGain();
-        bell.type = 'sine';
-        bell.frequency.setValueAtTime(1400, now);
-        bGain.gain.setValueAtTime(0, now);
-        bGain.gain.linearRampToValueAtTime(0.04, now + 0.02);
-        bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-        bell.connect(bGain);
-        bGain.connect(ctx.destination);
-        bell.start(now);
-        bell.stop(now + 0.5);
-        return;
-      }
-
       const source = ctx.createBufferSource();
       source.buffer = noiseBuffer.current;
       const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
 
+      if (type === 'BELL') {
+        const osc = ctx.createOscillator();
+        const oGain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, now);
+        oGain.gain.setValueAtTime(0, now);
+        oGain.gain.linearRampToValueAtTime(0.04, now + 0.01);
+        oGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+        osc.connect(oGain);
+        oGain.connect(ctx.destination);
+        osc.start(); osc.stop(now + 0.6);
+        return;
+      }
+
       if (type === 'SPACE') {
-        // Son SOURD (Thump) imitant la barre d'espace lourde
+        // Percussion sourde de la barre d'espace
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(350, now);
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+        filter.frequency.setValueAtTime(320, now);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
       } else {
-        // Son SEC et MÉTALLIQUE imitant la frappe standard
+        // Frappe mécanique sèche (Fixed frequency pour éviter l'effet musical)
         filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(3200, now);
-        filter.Q.setValueAtTime(4, now);
-        gain.gain.setValueAtTime(0.18, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+        filter.frequency.setValueAtTime(3400, now);
+        filter.Q.setValueAtTime(5, now);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
       }
 
       source.connect(filter);
