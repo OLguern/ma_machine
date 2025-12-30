@@ -1,7 +1,7 @@
 {
   "name": "Carbon Studio",
-  "version": "2.0.2",
-  "description": "Professional Screenwriting Suite - Titanium Core v2.0.2",
+  "version": "2.0.9",
+  "description": "Professional Screenwriting Suite - PWA Enabled",
   "requestFramePermissions": [
     "microphone"
   ]

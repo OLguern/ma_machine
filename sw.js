@@ -1,17 +1,20 @@
-// SW v1.5.7 - Désactivation totale pour débogage
-self.addEventListener('install', () => {
+const CACHE_NAME = 'ecrire-v2.0.9';
+
+self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
-      return Promise.all(keys.map(key => caches.delete(key)));
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      );
     }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
-  // On ne met plus rien en cache, on laisse passer le réseau
+  // Mode bypass pour garantir que l'utilisateur voit toujours la dernière version
   return;
 });

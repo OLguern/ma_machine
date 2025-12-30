@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface Props {
@@ -20,7 +19,7 @@ export const HelpModal: React.FC<Props> = ({ isOpen, onClose }) => {
               <h2 className="typewriter-font text-lg font-bold uppercase tracking-widest text-stone-100">
                 Certification & Déploiement
               </h2>
-              <p className="text-[9px] text-stone-500 uppercase tracking-[0.2em] mt-1 font-bold">Carbon Studio Professional v1.7.0</p>
+              <p className="text-[9px] text-stone-500 uppercase tracking-[0.2em] mt-1 font-bold">Carbon Studio Professional v2.0.9</p>
             </div>
           </div>
           <button onClick={onClose} className="text-stone-600 hover:text-white text-4xl leading-none">&times;</button>
@@ -33,7 +32,7 @@ export const HelpModal: React.FC<Props> = ({ isOpen, onClose }) => {
               🚀 Comment "Brancher" au Web
             </h3>
             <p className="text-[12px] text-stone-300 leading-relaxed italic">
-              Vous avez peur de rester coincé avec une application "de développement". Voici comment la rendre publique et professionnelle en 3 étapes :
+              Voici comment rendre votre application accessible partout en mode professionnel :
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="p-4 bg-[#111] border border-stone-800 rounded">
@@ -42,11 +41,11 @@ export const HelpModal: React.FC<Props> = ({ isOpen, onClose }) => {
               </div>
               <div className="p-4 bg-[#111] border border-stone-800 rounded">
                 <span className="text-amber-600 font-bold text-[10px] block mb-2">2. PAGES</span>
-                <p className="text-[10px] text-stone-500">Dans "Settings > Pages", activez le déploiement. C'est tout.</p>
+                <p className="text-[10px] text-stone-500">Dans "Settings > Pages", activez le déploiement GitHub Pages.</p>
               </div>
               <div className="p-4 bg-[#111] border border-stone-800 rounded">
                 <span className="text-amber-600 font-bold text-[10px] block mb-2">3. NOM DE DOMAINE</span>
-                <p className="text-[10px] text-stone-500">Vous pouvez lier votre propre nom (ex: www.monstudio.com) gratuitement.</p>
+                <p className="text-[10px] text-stone-500">Liez un nom (ex: www.scenariste.com) pour effacer l'URL technique.</p>
               </div>
             </div>
           </section>
@@ -57,7 +56,7 @@ export const HelpModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 📦 Vos fichiers .MAC
               </h3>
               <p className="text-[11px] text-stone-400 leading-relaxed">
-                Le fichier .MAC est votre "Projet Physique". Téléchargez-le régulièrement sur votre <b>Disque E:</b> ou votre <b>Cloud</b>. Il contient absolument tout (Script, Storyboard, Plans). Vous ne perdrez jamais rien.
+                Le fichier .MAC contient absolument tout votre projet. Téléchargez-le régulièrement sur votre clé USB ou votre Cloud.
               </p>
             </div>
 
@@ -66,17 +65,17 @@ export const HelpModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 📶 Mode Hors-Ligne
               </h3>
               <p className="text-[11px] text-stone-400 leading-relaxed">
-                Le studio est une <b>PWA (Progressive Web App)</b>. Une fois ouvert, il continue de fonctionner même si vous coupez Internet. C'est la puissance du Web moderne : local d'abord, connecté ensuite.
+                Une fois "Installée" via Chrome, l'application fonctionne même sans connexion internet.
               </p>
             </div>
           </section>
 
           <section className="space-y-4">
             <h3 className="text-stone-600 font-bold uppercase text-[10px] tracking-[0.4em] border-b border-stone-800 pb-2">
-              💡 Philosophie Studio (Style Blender)
+              💡 Philosophie v2.0.9
             </h3>
             <p className="text-[11px] text-stone-500 leading-relaxed">
-              Nous construisons une suite logicielle intégrée. Chaque module (Pitch, Synopsis, Storyboard) nourrit le suivant. Le Découpage technique se génère à partir du Séquencier. C'est l'efficience pure pour un scénariste.
+              Nous construisons une suite logicielle intégrée. Chaque module (Pitch, Synopsis, Storyboard) nourrit le suivant. C'est l'efficience pure.
             </p>
           </section>
 
@@ -87,7 +86,7 @@ export const HelpModal: React.FC<Props> = ({ isOpen, onClose }) => {
             onClick={onClose} 
             className="px-12 py-3 bg-amber-800 hover:bg-amber-700 text-white rounded-sm font-bold uppercase text-[10px] tracking-[0.3em] transition-all shadow-xl active:scale-95"
           >
-            Compris, je continue sur le Web
+            Fermer
           </button>
         </div>
       </div>

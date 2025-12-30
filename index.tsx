@@ -2,35 +2,36 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 
-const start = () => {
+const log = (window as any).CARBON_LOG || console.log;
+
+const startApp = () => {
   const rootEl = document.getElementById('root');
   if (!rootEl) return;
 
-  const hideLoader = () => {
-    const loader = document.getElementById('titanium-loader');
+  log("MOUNTING_CARBON...");
+
+  const killLoader = () => {
+    const loader = document.getElementById('absolute-loader');
     if (loader) {
       loader.style.opacity = '0';
-      setTimeout(() => { loader.style.display = 'none'; }, 500);
+      setTimeout(() => { loader.style.display = 'none'; }, 400);
     }
   };
 
   try {
     const root = createRoot(rootEl);
-    root.render(
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    );
-    // On attend un court instant que React commence le rendu
-    setTimeout(hideLoader, 500);
+    root.render(<App />);
+    log("SYSTEM_ONLINE");
+    setTimeout(killLoader, 500);
   } catch (err: any) {
-    console.error("TITANIUM_FATAL_ERROR:", err);
-    hideLoader(); // On cache quand même pour voir l'erreur potentielle dans App
+    console.error("FATAL_BOOT_ERROR:", err);
+    log("RECOVERY_MODE");
+    killLoader();
   }
 };
 
 if (document.readyState === 'complete') {
-    start();
+    startApp();
 } else {
-    window.addEventListener('load', start);
+    window.addEventListener('load', startApp);
 }

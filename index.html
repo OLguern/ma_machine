@@ -3,36 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Carbon Studio | v2.0.2 Titanium</title>
+    <title>La Machine à Écrire | v2.0.9</title>
+    
+    <!-- PWA Identity -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#020617">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Écrire">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3256/3256160.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     
     <script>
-        // Purge agressive du cache pour Titanium
-        (function() {
-            localStorage.removeItem('CARBON_CORE_VERSION'); // Forcer la réinitialisation
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(regs => {
-                    for(let r of regs) r.unregister();
-                });
+        window.CARBON_LOG = function(msg) {
+            console.log("[v2.0.9_BOOT] " + msg);
+            const statusEl = document.getElementById('boot-status');
+            if (statusEl) statusEl.innerText = msg;
+        };
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => window.CARBON_LOG("SYNC_OK"))
+                    .catch(err => window.CARBON_LOG("SYNC_ERR"));
+            });
+        }
+
+        // Dissipation forcée du loader
+        setTimeout(() => {
+            const loader = document.getElementById('absolute-loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => { loader.style.display = 'none'; }, 500);
             }
-        })();
+        }, 2500);
     </script>
 
     <style>
-        body { background: #050505; color: #cbd5e1; font-family: 'Courier Prime', monospace; margin: 0; overflow: hidden; }
-        #root:empty + #titanium-loader { display: flex; }
-        #titanium-loader { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; flex-direction: column; background: #050505; z-index: 9999; }
-        .titanium-card { 
-            width: 320px; padding: 40px; 
-            border: 1px solid #334155; background: #0f172a; 
-            border-radius: 2px; text-align: center;
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
-        }
-        .progress-track { width: 100%; height: 1px; background: #1e293b; margin: 25px 0; position: relative; }
-        .progress-bar { position: absolute; left: 0; top: 0; height: 100%; width: 50%; background: #94a3b8; animation: slide 2s infinite ease-in-out; }
-        @keyframes slide { 0% { left: -50%; width: 30%; } 100% { left: 100%; width: 50%; } }
-        .titanium-status { font-size: 8px; color: #475569; letter-spacing: 5px; text-transform: uppercase; font-weight: bold; }
+        body { background: #020617; color: #fff; font-family: 'Courier Prime', monospace; margin: 0; overflow: hidden; }
+        #root:empty + #absolute-loader { display: flex; }
+        #absolute-loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #020617; z-index: 9999; flex-direction: column; transition: opacity 0.5s ease; }
+        .terminal { width: 320px; padding: 30px; border: 1px solid #1e293b; background: #0f172a; border-radius: 4px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .cursor { display: inline-block; width: 8px; height: 12px; background: #334155; animation: blink 1s infinite; margin-left: 8px; vertical-align: middle; }
+        @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+        #boot-status { font-size: 8px; color: #64748b; text-transform: uppercase; letter-spacing: 4px; font-weight: bold; }
     </style>
 
     <script type="importmap">
@@ -55,15 +72,17 @@
 <body>
     <div id="root"></div>
 
-    <div id="titanium-loader">
-        <div class="titanium-card">
-            <div style="font-weight: bold; color: #94a3b8; font-size: 10px; letter-spacing: 8px; margin-bottom: 5px;">TITANIUM_CORE_2.0.2</div>
-            <div class="progress-track"><div class="progress-bar"></div></div>
-            <div class="titanium-status">RÉTABLISSEMENT DU SIGNAL</div>
+    <div id="absolute-loader">
+        <div class="terminal">
+            <div style="font-size: 9px; color: #1e293b; margin-bottom: 15px; letter-spacing: 6px; font-weight: bold;">CARBON_OS_SYNC_v2.0.9</div>
+            <div class="flex items-center">
+                <div id="boot-status">CHARGEMENT_SYSTEME</div>
+                <span class="cursor"></span>
+            </div>
         </div>
     </div>
 
-    <script type="module" src="./index.tsx?v=2.0.2"></script>
+    <script type="module" src="./index.tsx?v=2.0.9"></script>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>

@@ -61,7 +61,7 @@ export const MetadataModule: React.FC<Props> = ({ project, onUpdate, onNewProjec
   return (
     <div className="h-full bg-[#0a0a0a] flex flex-col overflow-hidden font-mono text-stone-400">
       <div className="h-12 bg-[#111] border-b border-[#222] flex items-center justify-between px-6 shrink-0">
-        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-amber-600 animate-pulse">CLEAN_STABLE v1.8.7</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-amber-600 animate-pulse">CLEAN_STABLE v2.0.9</span>
         <div className="flex gap-4">
           <button onClick={dumpRegistry} className="text-[9px] font-bold text-stone-500 hover:text-amber-500 transition-colors uppercase tracking-widest">[ Scan Mémoire ]</button>
           <button onClick={onNewProject} className="text-[9px] font-bold text-red-900 hover:text-red-500 transition-colors uppercase tracking-widest">[ Purge Manuscrit ]</button>
@@ -106,7 +106,7 @@ export const MetadataModule: React.FC<Props> = ({ project, onUpdate, onNewProjec
               <div className="border-b-2 border-black pb-4 mb-12 flex justify-between items-end">
                 <div>
                    <h1 className="text-3xl font-black uppercase tracking-tighter">Fiche de Production</h1>
-                   <div className="text-[9px] font-bold text-stone-400 tracking-[0.3em] uppercase">Carbon Studio Terminal v1.8.7</div>
+                   <div className="text-[9px] font-bold text-stone-400 tracking-[0.3em] uppercase">Machine à Écrire v2.0.9</div>
                 </div>
                 <div className="text-right">
                    <div className="text-[8px] font-bold uppercase text-stone-400">Intégrité</div>

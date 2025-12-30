@@ -1,12 +1,11 @@
-
 {
   "name": "La Machine à Écrire",
   "short_name": "Écrire",
-  "description": "Atelier d'écriture de scénario immersif et autonome",
-  "start_url": "./",
+  "description": "Atelier de scénarisation professionnel v2.0.9",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1e1e1e",
-  "theme_color": "#1e1e1e",
+  "background_color": "#020617",
+  "theme_color": "#020617",
   "orientation": "any",
   "icons": [
     {
