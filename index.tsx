@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
@@ -11,7 +12,8 @@ const startApp = () => {
   log("MOUNTING_CARBON...");
 
   const killLoader = () => {
-    const loader = document.getElementById('absolute-loader');
+    // Correction : L'ID dans index.html est 'initial-loader'
+    const loader = document.getElementById('initial-loader');
     if (loader) {
       loader.style.opacity = '0';
       setTimeout(() => { loader.style.display = 'none'; }, 400);
@@ -22,7 +24,8 @@ const startApp = () => {
     const root = createRoot(rootEl);
     root.render(<App />);
     log("SYSTEM_ONLINE");
-    setTimeout(killLoader, 500);
+    // On attend un petit peu que React soit bien prêt avant de tuer le loader
+    setTimeout(killLoader, 800);
   } catch (err: any) {
     console.error("FATAL_BOOT_ERROR:", err);
     log("RECOVERY_MODE");

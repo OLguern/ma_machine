@@ -1,15 +1,73 @@
 
-export enum ModuleType {
-  Projet = 'PROJET',
-  Intention = 'INTENTION',
-  Pitch = 'PITCH',
-  Synopsis = 'SYNOPSIS',
-  Personnages = 'PERSONNAGES',
-  Sequencier = 'SÉQUENCIER',
-  Scenario = 'SCÉNARIO',
-  Storyboard = 'STORYBOARD',
-  Technique = 'TECHNIQUE',
-  PlanSol = 'PLAN_SOL'
+export interface AIAction {
+  label: string;
+  prompt: string;
+  icon: string;
+}
+
+export enum EditorTab {
+  Script = 'SCRIPT',
+  Characters = 'CHARACTERS',
+  Structure = 'STRUCTURE'
+}
+
+export interface BezierNode {
+  id: string;
+  x: number;
+  y: number;
+  cp1x: number;
+  cp1y: number;
+  cp2x: number;
+  cp2y: number;
+}
+
+export interface FloorPlanItem {
+  id: string;
+  type: 'actor' | 'camera' | 'light' | 'led' | 'prop' | 'arrow' | 'text' | 'dolly' | 'bezier_curve';
+  x: number;
+  y: number;
+  rotation: number;
+  label: string;
+  color?: string;
+  scale?: number;
+  width?: number;
+  height?: number;
+  fov?: number;
+  range?: number;
+  shape?: 'circle' | 'square';
+  fontSize?: number;
+  borderWidth?: number;
+  nodes?: BezierNode[];
+  asRail?: boolean;
+  curvature?: number;
+}
+
+export interface IntentionQuestion {
+  id: string;
+  q: string;
+  hint: string;
+}
+
+export interface PitchQuestion {
+  id: string;
+  q: string;
+  hint: string;
+}
+
+export interface SynopsisQuestion {
+  id: string;
+  q: string;
+  hint: string;
+}
+
+export interface TechnicalColumn {
+  id: string;
+  label: string;
+}
+
+export interface TechnicalShot {
+  id: string;
+  values: Record<string, string>;
 }
 
 export interface Character {
@@ -20,79 +78,13 @@ export interface Character {
   answers: Record<string, string>;
 }
 
-// Added missing AIAction interface
-export interface AIAction {
-  label: string;
-  prompt: string;
-  icon: string;
-}
-
-// Added missing TechnicalColumn interface
-export interface TechnicalColumn {
+export interface StoryboardFrame {
   id: string;
-  label: string;
+  image: string;
+  notes: string;
+  shotType: string;
 }
 
-// Added missing TechnicalShot interface
-export interface TechnicalShot {
-  id: string;
-  values: Record<string, string>;
-}
-
-// Added missing BezierNode interface
-export interface BezierNode {
-  x: number;
-  y: number;
-  cp1x: number;
-  cp1y: number;
-  cp2x: number;
-  cp2y: number;
-}
-
-// Added missing FloorPlanItem interface
-export interface FloorPlanItem {
-  id: string;
-  type: 'camera' | 'actor' | 'light' | 'dolly' | 'prop' | 'arrow' | 'text' | 'bezier_curve';
-  x: number;
-  y: number;
-  rotation: number;
-  width: number;
-  height: number;
-  label: string;
-  color: string;
-  borderWidth?: number;
-  shape?: 'square' | 'circle';
-  fov?: number;
-  range?: number;
-  curvature?: number;
-  fontSize?: number;
-  scale?: number;
-  nodes?: BezierNode[];
-  asRail?: boolean;
-}
-
-// Added missing IntentionQuestion interface
-export interface IntentionQuestion {
-  id: string;
-  q: string;
-  hint: string;
-}
-
-// Added missing PitchQuestion interface
-export interface PitchQuestion {
-  id: string;
-  q: string;
-  hint: string;
-}
-
-// Added missing SynopsisQuestion interface
-export interface SynopsisQuestion {
-  id: string;
-  q: string;
-  hint: string;
-}
-
-// Added missing SceneContext interface
 export interface SceneContext {
   lumieres: string[];
   lieux: string[];
@@ -102,15 +94,11 @@ export interface SceneContext {
   eclairages: string[];
 }
 
-// Added missing StoryboardFrame interface
-export interface StoryboardFrame {
-  id: string;
-  image: string;
-  notes: string;
-  shotType: string;
+export interface WritingPreferences {
+  autoHeaderSpacing: boolean;
+  autoBlockSpacing: boolean;
 }
 
-// Added missing ExportSettings interface
 export interface ExportSettings {
   version: string;
   includeIntention: boolean;
@@ -122,16 +110,10 @@ export interface ExportSettings {
   includeStoryboard: boolean;
   includeTechnical: boolean;
   includeFloorPlan: boolean;
-  fontFamily: string;
-  fontSize: number;
+  fontFamily: 'Arial' | 'Times New Roman' | 'Courier Prime' | 'Special Elite';
+  fontSize: 12 | 14;
   titleColor: string;
-  titleFontSize: number;
-}
-
-// Added missing WritingPreferences interface
-export interface WritingPreferences {
-  autoHeaderSpacing: boolean;
-  autoBlockSpacing: boolean;
+  titleFontSize: 14 | 16;
 }
 
 export interface Project {
@@ -140,30 +122,46 @@ export interface Project {
   password?: string;
   meta: {
     author: string;
-    version: string;
+    address: string;
+    city: string;
+    email: string;
+    phone: string;
     productionType: string;
     footageType: string;
     duration: number;
+    version: string;
   };
   noteIntention: string;
+  intentionQuestions: IntentionQuestion[];
+  intentionAnswers: Record<string, string>;
   pitch: string;
+  pitchQuestions: PitchQuestion[];
+  pitchAnswers: Record<string, string>;
   synopsis: string;
+  synopsisQuestions: SynopsisQuestion[];
+  synopsisAnswers: Record<string, string>;
+  sceneContext: SceneContext;
+  writingPreferences: WritingPreferences;
   sequencier: string;
   script: string;
   characters: Character[];
-  lastModified: number;
-  // Updated type for floorPlans, storyboard and technicalBreakdown
+  technicalColumns: TechnicalColumn[];
+  technicalBreakdown: TechnicalShot[];
   floorPlans: Record<string, FloorPlanItem[]>;
   storyboard: StoryboardFrame[];
-  technicalBreakdown: TechnicalShot[];
-  // Added missing optional fields required by various modules
-  technicalColumns?: TechnicalColumn[];
-  intentionQuestions?: IntentionQuestion[];
-  intentionAnswers?: Record<string, string>;
-  pitchQuestions?: PitchQuestion[];
-  pitchAnswers?: Record<string, string>;
-  synopsisQuestions?: SynopsisQuestion[];
-  synopsisAnswers?: Record<string, string>;
-  sceneContext?: SceneContext;
-  writingPreferences?: WritingPreferences;
+  lastModified: number;
+}
+
+export enum ModuleType {
+  ProjectInfo = 'PROJECT_INFO',
+  Intention = 'INTENTION',
+  Pitch = 'PITCH',
+  Synopsis = 'SYNOPSIS',
+  Characters = 'CHARACTERS',
+  Context = 'CONTEXT',
+  Sequencer = 'SEQUENCER',
+  Script = 'SCRIPT',
+  Storyboard = 'STORYBOARD',
+  Technical = 'TECHNICAL',
+  FloorPlan = 'FLOOR_PLAN',
 }

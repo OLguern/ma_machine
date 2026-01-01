@@ -1,153 +1,156 @@
-import React, { useState, useEffect } from 'react';
-import { ModuleType, Project } from './types.ts';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Project, ModuleType } from './types.ts';
+import { APP_STORAGE_KEY } from './constants.tsx';
 import { MasterGate } from './components/MasterGate.tsx';
-import { MetadataModule } from './components/MetadataModule.tsx';
-import { ScriptEditor } from './components/ScriptEditor.tsx';
-import { CharacterManager } from './components/CharacterManager.tsx';
-import { IntentionModule } from './components/IntentionModule.tsx';
-import { PitchModule } from './components/PitchModule.tsx';
-import { SynopsisModule } from './components/SynopsisModule.tsx';
-import { SequencerModule } from './components/SequencerModule.tsx';
-import { StoryboardModule } from './components/StoryboardModule.tsx';
-import { TechnicalTable } from './components/TechnicalTable.tsx';
-import { FloorPlanCanvas } from './components/FloorPlanCanvas.tsx';
-import { generateProductionBook } from './services/docxExportService.ts';
 import saveAs from 'file-saver';
 
-const STORAGE_KEY = 'machine_a_ecrire_v2_session';
+// Modules
+const TechnicalTable = React.lazy(() => import('./components/TechnicalTable.tsx').then(m => ({ default: m.TechnicalTable })));
+const CharacterManager = React.lazy(() => import('./components/CharacterManager.tsx').then(m => ({ default: m.CharacterManager })));
+const IntentionModule = React.lazy(() => import('./components/IntentionModule.tsx').then(m => ({ default: m.IntentionModule })));
+const PitchModule = React.lazy(() => import('./components/PitchModule.tsx').then(m => ({ default: m.PitchModule })));
+const SynopsisModule = React.lazy(() => import('./components/SynopsisModule.tsx').then(m => ({ default: m.SynopsisModule })));
+const ContextModule = React.lazy(() => import('./components/ContextModule.tsx').then(m => ({ default: m.ContextModule })));
+const SequencerModule = React.lazy(() => import('./components/SequencerModule.tsx').then(m => ({ default: m.SequencerModule })));
+const ScriptEditor = React.lazy(() => import('./components/ScriptEditor.tsx').then(m => ({ default: m.ScriptEditor })));
+const MetadataModule = React.lazy(() => import('./components/MetadataModule.tsx').then(m => ({ default: m.MetadataModule })));
+const StoryboardModule = React.lazy(() => import('./components/StoryboardModule.tsx').then(m => ({ default: m.StoryboardModule })));
+const FloorPlanCanvas = React.lazy(() => import('./components/FloorPlanCanvas.tsx').then(m => ({ default: m.FloorPlanCanvas })));
+const HelpModal = React.lazy(() => import('./components/HelpModal.tsx').then(m => ({ default: m.HelpModal })));
 
-const DEFAULT_PROJECT: Project = {
-  id: '1',
-  title: 'NOUVEAU RÉCIT',
-  meta: { author: '', version: '1.0', productionType: 'Long-métrage', footageType: 'Fiction', duration: 90 },
-  noteIntention: '', pitch: '', synopsis: '', sequencier: '', script: '',
-  characters: [], floorPlans: {}, storyboard: [], technicalBreakdown: [],
-  lastModified: Date.now()
-};
+const VERSION = "2.1.3";
+const getUUID = () => crypto.randomUUID();
 
 const App: React.FC = () => {
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [activeModule, setActiveModule] = useState<ModuleType>(ModuleType.Scenario);
-  const [project, setProject] = useState<Project>(DEFAULT_PROJECT);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isMasterAuthorized, setIsMasterAuthorized] = useState(false);
+  const [activeModule, setActiveModule] = useState<ModuleType>(ModuleType.Script);
+  const [project, setProject] = useState<Project | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try { setProject(JSON.parse(saved)); } catch (e) { console.error(e); }
+    const currentRaw = localStorage.getItem(APP_STORAGE_KEY);
+    if (currentRaw) {
+      try {
+        setProject(JSON.parse(currentRaw));
+      } catch (e) { createNewProject(); }
+    } else {
+      createNewProject();
     }
   }, []);
 
   useEffect(() => {
-    if (isAuthorized) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+    if (project) {
+      localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(project));
     }
-  }, [project, isAuthorized]);
+  }, [project]);
 
-  const updateProject = (updates: Partial<Project>) => {
-    setProject(prev => ({ ...prev, ...updates, lastModified: Date.now() }));
-  };
-
-  const handleExportMac = () => {
-    const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
-    saveAs(blob, `${project.title.replace(/\s+/g, '_')}.mac`);
-  };
-
-  const handleImportMac = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.mac';
-    input.onchange = (e: any) => {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const imported = JSON.parse(event.target?.result as string);
-          setProject(imported);
-        } catch (err) { alert("Fichier .MAC invalide."); }
-      };
-      reader.readAsText(file);
+  const createNewProject = () => {
+    const newProj: Project = {
+      id: getUUID(), title: "NOUVEAU MANUSCRIT",
+      meta: { author: "", address: "", city: "", email: "", phone: "", productionType: "Drame", footageType: "Long-métrage", duration: 90, version: VERSION },
+      noteIntention: "", intentionQuestions: [], intentionAnswers: {}, pitch: "", pitchQuestions: [], pitchAnswers: {}, synopsis: "", synopsisQuestions: [], synopsisAnswers: {},
+      sceneContext: { lumieres: ["INT.", "EXT."], lieux: ["STUDIO"], temps: ["JOUR"], transitions: ["COUPE"], plans: ["GP"], eclairages: ["NATL"] },
+      writingPreferences: { autoHeaderSpacing: true, autoBlockSpacing: true }, sequencier: "", script: "", characters: [], technicalColumns: [], technicalBreakdown: [], floorPlans: {}, storyboard: [], lastModified: Date.now()
     };
-    input.click();
+    setProject(newProj);
   };
 
-  const handleExportDocx = async () => {
-    setIsExporting(true);
-    try {
-      const blob = await generateProductionBook(project, {
-        version: project.meta.version,
-        includeIntention: true, includePitch: true, includeSynopsis: true,
-        includeCharacters: true, includeSequencer: true, includeScript: true,
-        includeStoryboard: true, includeTechnical: true, includeFloorPlan: true,
-        fontFamily: 'Courier Prime', fontSize: 12, titleColor: '#000000', titleFontSize: 16
-      });
-      saveAs(blob, `${project.title}.docx`);
-    } catch (e) { alert("Erreur d'exportation DOCX"); }
-    finally { setIsExporting(false); }
+  const handleSaveMac = () => {
+    if (!project) return;
+    const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
+    saveAs(blob, `${project.title.replace(/[^a-z0-9]/gi, '_')}.mac`);
   };
 
-  if (!isAuthorized) return <MasterGate onAuthorized={() => setIsAuthorized(true)} />;
-
-  const renderModule = () => {
-    switch (activeModule) {
-      case ModuleType.Projet: return <MetadataModule project={project} onUpdate={updateProject} onNewProject={() => setProject(DEFAULT_PROJECT)} />;
-      case ModuleType.Scenario: return <ScriptEditor project={project} onUpdate={updateProject} />;
-      case ModuleType.Personnages: return <CharacterManager characters={project.characters} onUpdate={(chars) => updateProject({ characters: chars })} />;
-      case ModuleType.Intention: return <IntentionModule project={project} onUpdate={updateProject} />;
-      case ModuleType.Pitch: return <PitchModule project={project} onUpdate={updateProject} />;
-      case ModuleType.Synopsis: return <SynopsisModule project={project} onUpdate={updateProject} />;
-      case ModuleType.Sequencier: return <SequencerModule project={project} onUpdate={updateProject} />;
-      case ModuleType.Storyboard: return <StoryboardModule project={project} onUpdate={updateProject} />;
-      case ModuleType.Technique: return <TechnicalTable project={project} onUpdate={updateProject} />;
-      case ModuleType.PlanSol: return <FloorPlanCanvas shots={project.technicalBreakdown} columns={[]} floorPlans={project.floorPlans} onUpdate={(fps) => updateProject({ floorPlans: fps })} />;
-      default: return <ScriptEditor project={project} onUpdate={updateProject} />;
-    }
+  const handleImportMac = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        setProject(JSON.parse(event.target?.result as string));
+      } catch (err) { alert("Fichier invalide."); }
+    };
+    reader.readAsText(file);
   };
+
+  if (!isMasterAuthorized) return <MasterGate onAuthorized={() => setIsMasterAuthorized(true)} />;
+  if (!project) return null;
+
+  const navItems = [
+    { type: ModuleType.ProjectInfo, label: "Fiche", icon: "🏢" },
+    { type: ModuleType.Intention, label: "Intention", icon: "📝" },
+    { type: ModuleType.Pitch, label: "Pitch", icon: "⚡" },
+    { type: ModuleType.Synopsis, label: "Synopsis", icon: "📖" },
+    { type: ModuleType.Context, label: "Contexte", icon: "⚙️" },
+    { type: ModuleType.Characters, label: "Personnages", icon: "👥" },
+    { type: ModuleType.Sequencer, label: "Séquencier", icon: "🎞️" },
+    { type: ModuleType.Script, label: "Scenario", icon: "📽️" },
+    { type: ModuleType.Storyboard, label: "Storyboard", icon: "🎨" },
+    { type: ModuleType.Technical, label: "Découpage", icon: "📊" },
+    { type: ModuleType.FloorPlan, label: "Plan Sol", icon: "📐" },
+  ];
 
   return (
-    <div className="flex h-screen flex-col bg-[#020617] text-slate-200">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-800 bg-[#0f172a] px-6 z-50 shadow-2xl">
+    <div className="flex flex-col h-screen text-slate-300 bg-[#1a1a1a] font-sans overflow-hidden">
+      <header className="h-14 bg-black border-b border-white/10 flex items-center justify-between px-6 shrink-0 z-50">
         <div className="flex items-center gap-4">
-          <div className="h-10 w-10 flex items-center justify-center bg-amber-600 rounded text-white font-black text-xl">M</div>
-          <div>
-            <h1 className="text-xs font-black uppercase tracking-[0.3em]">Machine à Écrire</h1>
-            <p className="text-[8px] font-bold text-slate-500 tracking-widest uppercase">Studio Carbone v2.1.3</p>
-          </div>
+          <div className="w-8 h-8 bg-amber-600 rounded flex items-center justify-center font-bold text-black">M</div>
+          <h1 className="font-bold text-[10px] tracking-[0.5em] uppercase text-amber-500">{project.title}</h1>
         </div>
-
-        <nav className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
-          {Object.values(ModuleType).map((m) => (
-            <button
-              key={m}
-              onClick={() => setActiveModule(m)}
-              className={`px-3 py-2 text-[9px] font-bold uppercase tracking-widest transition-all rounded ${activeModule === m ? 'bg-amber-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
-            >
-              {m.replace('_', ' ')}
-            </button>
-          ))}
-        </nav>
-
         <div className="flex items-center gap-3">
-           <button onClick={handleImportMac} className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white border border-slate-800 rounded">Ouvrir .MAC</button>
-           <button onClick={handleExportMac} className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-amber-500 border border-amber-900/30 rounded">Sauver .MAC</button>
-           <button onClick={handleExportDocx} disabled={isExporting} className="px-4 py-2 bg-slate-100 text-slate-900 text-[10px] font-black uppercase rounded hover:bg-white transition-all">DOCX</button>
+          <input type="file" ref={fileInputRef} onChange={handleImportMac} accept=".mac" className="hidden" />
+          <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-white/5 border border-white/20 text-stone-200 rounded text-[9px] font-bold uppercase tracking-widest">Charger</button>
+          <button onClick={handleSaveMac} className="px-4 py-1.5 bg-amber-900 border border-amber-600 text-amber-400 rounded text-[9px] font-bold uppercase tracking-widest">Sauver</button>
+          <button onClick={() => setIsHelpOpen(true)} className="w-8 h-8 bg-white/5 border border-white/20 rounded">?</button>
         </div>
       </header>
 
-      <main className="flex-grow relative overflow-hidden bg-[#020617]">
-        {renderModule()}
+      <nav className="h-10 bg-black/50 border-b border-white/10 flex items-center px-4 gap-1 shrink-0 overflow-x-auto">
+        {navItems.map(item => (
+          <button
+            key={item.type}
+            onClick={() => setActiveModule(item.type)}
+            className={`h-full px-4 text-[9px] font-bold uppercase tracking-widest border-b-2 whitespace-nowrap ${
+              activeModule === item.type ? 'text-amber-500 border-amber-500 bg-amber-500/10' : 'text-stone-500 border-transparent'
+            }`}
+          >
+            {item.icon} {item.label}
+          </button>
+        ))}
+      </nav>
+
+      <main className="flex-grow overflow-hidden p-4 relative">
+        <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+          <img src="scene_theatre.png" alt="" className="w-full h-full object-cover" />
+        </div>
+        
+        <div className="h-full relative z-10">
+          <React.Suspense fallback={<div className="h-full flex items-center justify-center">Chargement...</div>}>
+            {activeModule === ModuleType.ProjectInfo && <MetadataModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} onNewProject={createNewProject} />}
+            {activeModule === ModuleType.Intention && <IntentionModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
+            {activeModule === ModuleType.Pitch && <PitchModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
+            {activeModule === ModuleType.Synopsis && <SynopsisModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
+            {activeModule === ModuleType.Context && <ContextModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
+            {activeModule === ModuleType.Characters && <CharacterManager characters={project.characters} onUpdate={(chars) => setProject(p => p ? {...p, characters: chars} : null)} />}
+            {activeModule === ModuleType.Sequencer && <SequencerModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
+            {activeModule === ModuleType.Script && <ScriptEditor project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
+            {activeModule === ModuleType.Technical && <TechnicalTable project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
+            {activeModule === ModuleType.Storyboard && <StoryboardModule project={project} onUpdate={(u) => setProject(p => p ? {...p, ...u} : null)} />}
+            {activeModule === ModuleType.FloorPlan && (
+              <FloorPlanCanvas shots={project.technicalBreakdown} columns={project.technicalColumns} floorPlans={project.floorPlans} onUpdate={(fps) => setProject(p => p ? {...p, floorPlans: fps} : null)} />
+            )}
+          </React.Suspense>
+        </div>
       </main>
 
-      <footer className="h-8 border-t border-slate-800 bg-[#0f172a] flex items-center justify-between px-6 text-[8px] font-bold uppercase tracking-widest text-slate-500">
-        <div className="flex gap-6">
-          <span>PROJET : <span className="text-amber-500">{project.title}</span></span>
-          <span>AUTEUR : {project.meta.author || 'NON IDENTIFIÉ'}</span>
-        </div>
-        <div className="flex gap-4">
-          <span className="text-emerald-500 animate-pulse">● CANAL SÉCURISÉ</span>
-          <span>v2.1.3-PRO</span>
-        </div>
+      <footer className="h-8 bg-black border-t border-white/10 flex items-center justify-between px-6 shrink-0 text-[8px] font-bold uppercase text-stone-600 tracking-[0.5em]">
+          <div>SIGNAL_ACTIF</div>
+          <div>LA MACHINE À ÉCRIRE v{VERSION}</div>
       </footer>
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </div>
   );
 };
